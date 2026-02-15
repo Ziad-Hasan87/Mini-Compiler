@@ -1,10 +1,8 @@
 %{
+#include "parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-FILE *yyin;
-FILE *yyout;
 %}
 
 %option noyywrap
@@ -18,82 +16,67 @@ FLOAT   {DIGIT}+"."{DIGIT}+
 
 %%
 
-"integer"       { fprintf(yyout,"INTEGER\n"); }
-"decimal"       { fprintf(yyout,"DECIMAL\n"); }
-"symbol"        { fprintf(yyout,"SYMBOL\n"); }
-"logical"       { fprintf(yyout,"LOGICAL\n"); }
-"nothing"       { fprintf(yyout,"NOTHING\n"); }
+"integer"       { return INTEGER; }
+"decimal"       { return DECIMAL; }
+"symbol"        { return SYMBOL; }
+"logical"       { return LOGICAL; }
+"nothing"       { return NOTHING; }
 
-"function"      { fprintf(yyout,"FUNCTION\n"); }
-"returns"       { fprintf(yyout,"RETURNS\n"); }
+"function"      { return FUNCTION; }
+"returns"       { return RETURNS; }
 
-"when"          { fprintf(yyout,"WHEN\n"); }
-"is"            { fprintf(yyout,"IS\n"); }
-"otherwise"     { fprintf(yyout,"OTHERWISE\n"); }
+"when"          { return WHEN; }
+"is"            { return IS; }
+"otherwise"     { return OTHERWISE; }
 
-"SAFE"          { fprintf(yyout,"SAFE\n"); }
+"SAFE"          { return SAFE; }
 
-"from"          { fprintf(yyout,"FROM\n"); }
-"to"            { fprintf(yyout,"TO\n"); }
-"in"            { fprintf(yyout,"IN\n"); }
+"from"          { return FROM; }
+"to"            { return TO; }
+"in"            { return IN; }
 
-"bound"         { fprintf(yyout,"BOUND\n"); }
-"xbound"        { fprintf(yyout,"XBOUND\n"); }
-"above"         { fprintf(yyout,"ABOVE\n"); }
-"below"         { fprintf(yyout,"BELOW\n"); }
-"equals"        { fprintf(yyout,"EQUALS\n"); }
+"bound"         { return BOUND; }
+"xbound"        { return XBOUND; }
+"above"         { return ABOVE; }
+"below"         { return BELOW; }
+"equals"        { return EQUALS; }
 
-"until"         { fprintf(yyout,"UNTIL\n"); }
+"until"         { return UNTIL; }
 
-"true"|"false"  { fprintf(yyout,"BOOL_LITERAL (%s)\n", yytext); }
+"true"|"false"  { return BOOL_LITERAL; }
 
-{FLOAT}         { fprintf(yyout,"FLOAT_LITERAL (%s)\n", yytext); }
-{INT}           { fprintf(yyout,"INT_LITERAL (%s)\n", yytext); }
-{ID}            { fprintf(yyout,"IDENTIFIER (%s)\n", yytext); }
+{FLOAT}         { return FLOAT_LITERAL; }
+{INT}           { return INT_LITERAL; }
+{ID}            { return IDENTIFIER; }
 
-"=="|"!="|"<="|">="|"<"|">" { fprintf(yyout,"COMP (%s)\n", yytext); }
+"=="|"!="|"<="|">="|"<"|">"   { return COMP; }
 
-"+="|"-="|"*="|"/=" { fprintf(yyout,"COMP_ASSIGN (%s)\n", yytext); }
+"+="|"-="|"*="|"/="           { return COMP_ASSIGN; }
 
-"="                 { fprintf(yyout,"ASSIGN\n"); }
+"="             { return ASSIGN; }
 
-[ \t\r\n]+          { /* ignore */ }
+";"             { return SEMICOLON; }
+","             { return COMMA; }
+"("             { return LPAREN; }
+")"             { return RPAREN; }
+"{"             { return LBRACE; }
+"}"             { return RBRACE; }
 
-"/*"                { BEGIN(COMMENT_STATE); }
-";"                 { fprintf(yyout,"SEMICOLON\n"); }
-","                 { fprintf(yyout,"COMMA\n"); }
-"("                 { fprintf(yyout,"LPAREN\n"); }
-")"                 { fprintf(yyout,"RPAREN\n"); }
-"{"                 { fprintf(yyout,"LBRACE\n"); }
-"}"                 { fprintf(yyout,"RBRACE\n"); }
-"+"                 { fprintf(yyout,"PLUS\n"); }
-"-"                 { fprintf(yyout,"MINUS\n"); }
-"*"                 { fprintf(yyout,"MULT\n"); }
-"/"                 { fprintf(yyout,"DIV\n"); }
-"\""                { fprintf(yyout,"QUOTE\n"); }
+"+"             { return PLUS; }
+"-"             { return MINUS; }
+"*"             { return MULT; }
+"/"             { return DIV; }
 
+[ \t\r\n]+      { /* ignore whitespace */ }
+
+"/*"            { BEGIN(COMMENT_STATE); }
 
 <COMMENT_STATE>"*/"     { BEGIN(INITIAL); }
-<COMMENT_STATE>[^*\n]+  { /* ignore*/ }
+<COMMENT_STATE>[^*\n]+  { /* ignore */ }
 <COMMENT_STATE>"*"[^/]  { /* ignore */ }
 <COMMENT_STATE>\n       { /* ignore */ }
 
-
-.               { fprintf(yyout,"UNKNOWN (%s)\n", yytext); }
+.               { return yytext[0]; }
 
 %%
 
-int main(void) {
-    yyin = fopen("input.txt", "r");
-    yyout = fopen("output.txt", "w");
-
-    if (!yyin || !yyout) {
-        perror("File error");
-        return 1;
-    }
-
-    yylex();
-    fclose(yyin);
-    fclose(yyout);
-    return 0;
-}

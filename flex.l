@@ -1,18 +1,17 @@
 %{
 #include "parser.tab.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 %}
 
 %option noyywrap
+%option yylineno
 %x COMMENT_STATE
 
 DIGIT   [0-9]
 LETTER  [a-zA-Z_]
 ID      {LETTER}({LETTER}|{DIGIT})*
 INT     {DIGIT}+
-FLOAT   {DIGIT}+"."{DIGIT}+
+FLOAT   {DIGIT}+"."{DIGIT}+ 
+STRING  \"([^\\\"]|\\.)*\"
 
 %%
 
@@ -43,17 +42,20 @@ FLOAT   {DIGIT}+"."{DIGIT}+
 
 "until"         { return UNTIL; }
 
+"print"        { return PRINT; }
+
+
 "true"|"false"  { return BOOL_LITERAL; }
 
 {FLOAT}         { return FLOAT_LITERAL; }
 {INT}           { return INT_LITERAL; }
 {ID}            { return IDENTIFIER; }
+{STRING}        { return STRING_LITERAL; }
+
 
 "=="|"!="|"<="|">="|"<"|">"   { return COMP; }
-
 "+="|"-="|"*="|"/="           { return COMP_ASSIGN; }
-
-"="             { return ASSIGN; }
+"="                           { return ASSIGN; }
 
 ";"             { return SEMICOLON; }
 ","             { return COMMA; }
@@ -73,10 +75,9 @@ FLOAT   {DIGIT}+"."{DIGIT}+
 
 <COMMENT_STATE>"*/"     { BEGIN(INITIAL); }
 <COMMENT_STATE>[^*\n]+  { /* ignore */ }
-<COMMENT_STATE>"*"[^/]  { /* ignore */ }
-<COMMENT_STATE>\n       { /* ignore */ }
+<COMMENT_STATE>"*"[^/]   { /* ignore */ }
+<COMMENT_STATE>\n        { /* ignore */ }
 
 .               { return yytext[0]; }
 
 %%
-

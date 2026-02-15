@@ -90,7 +90,9 @@ extern int yydebug;
     PLUS = 291,                    /* PLUS  */
     MINUS = 292,                   /* MINUS  */
     MULT = 293,                    /* MULT  */
-    DIV = 294                      /* DIV  */
+    DIV = 294,                     /* DIV  */
+    STRING_LITERAL = 295,          /* STRING_LITERAL  */
+    PRINT = 296                    /* PRINT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

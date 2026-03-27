@@ -1,47 +1,39 @@
-integer mainCounter;
-decimal result;
+/* Declare variables */
+integer x;
+decimal y;
+logical flag;
 
-function divide(integer a, integer b) returns decimal {
-    SAFE divisionBlock {
-        result = a / b;
-    }
-    return /* result */;
+/* Assign values */
+x = 5.2;
+y = 3.14 +x/(3-1);
+flag = true;
+
+/* Print variables */
+print(x);
+print(y);
+print(flag);
+
+/* Arithmetic and comp_assign */
+x += 10;
+y *= 2.0;
+
+print(x);
+print(y);
+
+
+integer i;
+i from 1 to 5 in (x = i*2) {
+    print(x);
 }
+when {
+    is (x > 10) { print("BIG"); }
+    otherwise { print("SMALL"); }
+}
+x=9;
 
-function main() returns nothing {
-
-    mainCounter = 0;
-
-    mainCounter from 0 to 10 in (mainCounter  +=  1) {
-
-        when {
-            is (mainCounter == 5) {
-                print("Reached five");
-            }
-            is (mainCounter < 5) {
-                print("Below five");
-            }
-            otherwise {
-                print("Above five");
-            }
-        }
-
-        bound(mainCounter) {
-            in (1, 3) {
-                print("Between one and three");
-            }
-            equals(5) {
-                print("Exactly five");
-            }
-            above(8) {
-                print("Greater than eight");
-            }
-        }
-    }
-
-    until(mainCounter > 15) {
-        mainCounter = mainCounter + 1;
-    }
-
-    divide(10, 2);
+bound (x) {
+    in (10, 20) { print("Between 10 and 20"); }
+    above (20) { print("greater than 20"); }
+    below (10) { print("below 10"); }
+    equals (15) { print("Exactly 10"); }
 }

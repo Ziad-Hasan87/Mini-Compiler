@@ -1,4 +1,8 @@
 %{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ast.h"
 #include "parser.tab.h"
 %}
 
@@ -10,52 +14,77 @@ DIGIT   [0-9]
 LETTER  [a-zA-Z_]
 ID      {LETTER}({LETTER}|{DIGIT})*
 INT     {DIGIT}+
-FLOAT   {DIGIT}+"."{DIGIT}+ 
+FLOAT   {DIGIT}+"."{DIGIT}+
 STRING  \"([^\\\"]|\\.)*\"
 
 %%
 
 "integer"       { return INTEGER; }
 "decimal"       { return DECIMAL; }
-"symbol"        { return SYMBOL; }
 "logical"       { return LOGICAL; }
 "nothing"       { return NOTHING; }
-
-"function"      { return FUNCTION; }
-"returns"       { return RETURNS; }
 
 "when"          { return WHEN; }
 "is"            { return IS; }
 "otherwise"     { return OTHERWISE; }
-
-"SAFE"          { return SAFE; }
+"safe"          { return SAFE; }
 
 "from"          { return FROM; }
 "to"            { return TO; }
 "in"            { return IN; }
 
 "bound"         { return BOUND; }
-"xbound"        { return XBOUND; }
 "above"         { return ABOVE; }
 "below"         { return BELOW; }
 "equals"        { return EQUALS; }
 
 "until"         { return UNTIL; }
 
-"print"        { return PRINT; }
+"print"         { return PRINT; }
 
+"true"|"false"  {
+    yylval.str = strdup(yytext);
+    return BOOL_LITERAL;
+}
 
-"true"|"false"  { return BOOL_LITERAL; }
+{FLOAT}         {
+    yylval.str = strdup(yytext);
+    return FLOAT_LITERAL;
+}
 
-{FLOAT}         { return FLOAT_LITERAL; }
-{INT}           { return INT_LITERAL; }
-{ID}            { return IDENTIFIER; }
-{STRING}        { return STRING_LITERAL; }
+{INT}           {
+    yylval.str = strdup(yytext);
+    return INT_LITERAL;
+}
 
+{ID}            {
+    yylval.str = strdup(yytext);
+    return IDENTIFIER;
+}
 
-"=="|"!="|"<="|">="|"<"|">"   { return COMP; }
-"+="|"-="|"*="|"/="           { return COMP_ASSIGN; }
-"="                           { return ASSIGN; }
+{STRING}        {
+    yylval.str = strdup(yytext);
+
+    size_t len = strlen(yylval.str);
+    if (len >= 2 && yylval.str[0] == '"' && yylval.str[len - 1] == '"') {
+        yylval.str[len - 1] = '\0';
+        memmove(yylval.str, yylval.str + 1, len - 1);
+    }
+
+    return STRING_LITERAL;
+}
+
+"=="|"!="|"<="|">="|"<"|">" {
+    yylval.str = strdup(yytext);
+    return COMP;
+}
+
+"+="|"-="|"*="|"/=" {
+    yylval.str = strdup(yytext);
+    return COMP_ASSIGN;
+}
+
+"="             { return ASSIGN; }
 
 ";"             { return SEMICOLON; }
 ","             { return COMMA; }
@@ -72,9 +101,8 @@ STRING  \"([^\\\"]|\\.)*\"
 [ \t\r\n]+      { /* ignore whitespace */ }
 
 "/*"            { BEGIN(COMMENT_STATE); }
-
-<COMMENT_STATE>"*/"     { BEGIN(INITIAL); }
-<COMMENT_STATE>[^*\n]+  { /* ignore */ }
+<COMMENT_STATE>"*/"      { BEGIN(INITIAL); }
+<COMMENT_STATE>[^*\n]+   { /* ignore */ }
 <COMMENT_STATE>"*"[^/]   { /* ignore */ }
 <COMMENT_STATE>\n        { /* ignore */ }
 

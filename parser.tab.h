@@ -56,50 +56,59 @@ extern int yydebug;
     YYUNDEF = 257,                 /* "invalid token"  */
     INTEGER = 258,                 /* INTEGER  */
     DECIMAL = 259,                 /* DECIMAL  */
-    SYMBOL = 260,                  /* SYMBOL  */
-    LOGICAL = 261,                 /* LOGICAL  */
-    NOTHING = 262,                 /* NOTHING  */
-    FUNCTION = 263,                /* FUNCTION  */
-    RETURNS = 264,                 /* RETURNS  */
+    LOGICAL = 260,                 /* LOGICAL  */
+    NOTHING = 261,                 /* NOTHING  */
+    FROM = 262,                    /* FROM  */
+    TO = 263,                      /* TO  */
+    IN = 264,                      /* IN  */
     WHEN = 265,                    /* WHEN  */
     IS = 266,                      /* IS  */
     OTHERWISE = 267,               /* OTHERWISE  */
     SAFE = 268,                    /* SAFE  */
-    FROM = 269,                    /* FROM  */
-    TO = 270,                      /* TO  */
-    IN = 271,                      /* IN  */
-    BOUND = 272,                   /* BOUND  */
-    XBOUND = 273,                  /* XBOUND  */
-    ABOVE = 274,                   /* ABOVE  */
-    BELOW = 275,                   /* BELOW  */
-    EQUALS = 276,                  /* EQUALS  */
-    UNTIL = 277,                   /* UNTIL  */
-    BOOL_LITERAL = 278,            /* BOOL_LITERAL  */
-    FLOAT_LITERAL = 279,           /* FLOAT_LITERAL  */
-    INT_LITERAL = 280,             /* INT_LITERAL  */
-    IDENTIFIER = 281,              /* IDENTIFIER  */
+    BOUND = 269,                   /* BOUND  */
+    ABOVE = 270,                   /* ABOVE  */
+    BELOW = 271,                   /* BELOW  */
+    EQUALS = 272,                  /* EQUALS  */
+    UNTIL = 273,                   /* UNTIL  */
+    BOOL_LITERAL = 274,            /* BOOL_LITERAL  */
+    IDENTIFIER = 275,              /* IDENTIFIER  */
+    STRING_LITERAL = 276,          /* STRING_LITERAL  */
+    INT_LITERAL = 277,             /* INT_LITERAL  */
+    FLOAT_LITERAL = 278,           /* FLOAT_LITERAL  */
+    ASSIGN = 279,                  /* ASSIGN  */
+    SEMICOLON = 280,               /* SEMICOLON  */
+    COMMA = 281,                   /* COMMA  */
     COMP = 282,                    /* COMP  */
     COMP_ASSIGN = 283,             /* COMP_ASSIGN  */
-    ASSIGN = 284,                  /* ASSIGN  */
-    SEMICOLON = 285,               /* SEMICOLON  */
-    COMMA = 286,                   /* COMMA  */
-    LPAREN = 287,                  /* LPAREN  */
-    RPAREN = 288,                  /* RPAREN  */
-    LBRACE = 289,                  /* LBRACE  */
-    RBRACE = 290,                  /* RBRACE  */
-    PLUS = 291,                    /* PLUS  */
-    MINUS = 292,                   /* MINUS  */
-    MULT = 293,                    /* MULT  */
-    DIV = 294,                     /* DIV  */
-    STRING_LITERAL = 295,          /* STRING_LITERAL  */
-    PRINT = 296                    /* PRINT  */
+    PLUS = 284,                    /* PLUS  */
+    MINUS = 285,                   /* MINUS  */
+    MULT = 286,                    /* MULT  */
+    DIV = 287,                     /* DIV  */
+    LPAREN = 288,                  /* LPAREN  */
+    RPAREN = 289,                  /* RPAREN  */
+    LBRACE = 290,                  /* LBRACE  */
+    RBRACE = 291,                  /* RBRACE  */
+    PRINT = 292                    /* PRINT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 294 "parser.y"
+
+    char* str;
+    int num;
+    double dnum;
+    int bval;
+    ASTNode* node;
+
+#line 109 "parser.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

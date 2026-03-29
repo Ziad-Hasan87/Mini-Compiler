@@ -12,10 +12,23 @@ typedef struct Var {
     int bvalue;
 } Var;
 
-Var symtab[100];
+typedef struct Function {
+    char name[50];
+    int return_type;
+    ASTNode *params;
+    ASTNode *body;
+} Function;
+
+Var symtab[500];
 int symcount = 0;
 
+Function functab[100];
+int funccount = 0;
+
 ASTNode* root = NULL;
+
+int has_return = 0;
+double return_value = 0;
 
 extern int yylex();
 extern char *yytext;
@@ -35,17 +48,7 @@ static ASTNode* new_node(const char *type) {
     return n;
 }
 
-void add_variable(char* name, int type) {
-    for (int i = 0; i < symcount; i++) {
-        if (strcmp(symtab[i].name, name) == 0) {
-            symtab[i].type = type;
-            symtab[i].ivalue = 0;
-            symtab[i].dvalue = 0.0;
-            symtab[i].bvalue = 0;
-            return;
-        }
-    }
-
+void push_variable(char* name, int type) {
     strcpy(symtab[symcount].name, name);
     symtab[symcount].type = type;
     symtab[symcount].ivalue = 0;
@@ -54,8 +57,12 @@ void add_variable(char* name, int type) {
     symcount++;
 }
 
+void add_variable(char* name, int type) {
+    push_variable(name, type);
+}
+
 Var* get_variable(char* name) {
-    for (int i = 0; i < symcount; i++) {
+    for (int i = symcount - 1; i >= 0; i--) {
         if (strcmp(symtab[i].name, name) == 0) {
             return &symtab[i];
         }
@@ -63,8 +70,97 @@ Var* get_variable(char* name) {
     return NULL;
 }
 
+void register_function(ASTNode* n) {
+    for (int i = 0; i < funccount; i++) {
+        if (strcmp(functab[i].name, n->name) == 0) {
+            functab[i].return_type = n->var_type;
+            functab[i].params = n->children[0];
+            functab[i].body = n->children[1];
+            return;
+        }
+    }
+
+    strcpy(functab[funccount].name, n->name);
+    functab[funccount].return_type = n->var_type;
+    functab[funccount].params = n->children[0];
+    functab[funccount].body = n->children[1];
+    funccount++;
+}
+
+Function* get_function(char* name) {
+    for (int i = 0; i < funccount; i++) {
+        if (strcmp(functab[i].name, name) == 0) {
+            return &functab[i];
+        }
+    }
+    return NULL;
+}
+
+void scan_functions(ASTNode* n) {
+    if (!n) return;
+
+    if (strcmp(n->type, "function") == 0) {
+        register_function(n);
+    }
+
+    if (n->left) scan_functions(n->left);
+    if (n->right) scan_functions(n->right);
+
+    for (int i = 0; i < n->child_count; i++) {
+        scan_functions(n->children[i]);
+    }
+}
+
 double eval(ASTNode* n);
 void execute(ASTNode* n);
+
+double call_function(char* name, ASTNode* args) {
+    Function* fn = get_function(name);
+    if (!fn) {
+        printf("Error: function %s not found\n", name);
+        return 0;
+    }
+
+    int param_count = (fn->params) ? fn->params->child_count : 0;
+    int arg_count = (args) ? args->child_count : 0;
+
+    if (param_count != arg_count) {
+        printf("Error: function %s expects %d arguments but got %d\n", name, param_count, arg_count);
+        return 0;
+    }
+
+    double evaluated_args[100];
+    for (int i = 0; i < arg_count; i++) {
+        evaluated_args[i] = eval(args->children[i]);
+    }
+
+    int old_symcount = symcount;
+    int old_has_return = has_return;
+    double old_return_value = return_value;
+
+    has_return = 0;
+    return_value = 0;
+
+    for (int i = 0; i < param_count; i++) {
+        ASTNode *param = fn->params->children[i];
+        push_variable(param->name, param->var_type);
+
+        Var *v = get_variable(param->name);
+        if (v->type == 1) v->ivalue = (int)evaluated_args[i];
+        else if (v->type == 2) v->dvalue = evaluated_args[i];
+        else if (v->type == 3) v->bvalue = (evaluated_args[i] != 0);
+    }
+
+    execute(fn->body);
+
+    double result = return_value;
+
+    symcount = old_symcount;
+    has_return = old_has_return;
+    return_value = old_return_value;
+
+    return result;
+}
 
 void eval_print(ASTNode* n) {
     if (!n) return;
@@ -117,6 +213,10 @@ double eval(ASTNode* n) {
         return v->bvalue;
     }
 
+    if (strcmp(n->type, "func_call") == 0) {
+        return call_function(n->name, n->children[0]);
+    }
+
     if (strcmp(n->type, "add") == 0) return eval(n->left) + eval(n->right);
     if (strcmp(n->type, "sub") == 0) return eval(n->left) - eval(n->right);
     if (strcmp(n->type, "mul") == 0) return eval(n->left) * eval(n->right);
@@ -139,10 +239,12 @@ double eval(ASTNode* n) {
 
 void execute(ASTNode* n) {
     if (!n) return;
+    if (has_return) return;
 
     if (strcmp(n->type, "statements") == 0) {
         for (int i = 0; i < n->child_count; i++) {
             execute(n->children[i]);
+            if (has_return) return;
         }
         return;
     }
@@ -152,15 +254,21 @@ void execute(ASTNode* n) {
         return;
     }
 
+    if (strcmp(n->type, "function") == 0) {
+        register_function(n);
+        return;
+    }
+
+    if (strcmp(n->type, "return") == 0) {
+        return_value = eval(n->left);
+        has_return = 1;
+        return;
+    }
+
     if (strcmp(n->type, "assign") == 0) {
         Var* v = get_variable(n->name);
         if (!v) {
             printf("Error: variable %s not declared\n", n->name);
-            return;
-        }
-
-        if (v->type == 3 && strcmp(n->left->type, "string") == 0) {
-            printf("Error: cannot assign string to logical variable %s\n", n->name);
             return;
         }
 
@@ -217,12 +325,10 @@ void execute(ASTNode* n) {
         for (int i = start; i <= end; i++) {
             loopVar->ivalue = i;
 
-            if (n->child_count > 0 && n->children[0]) {
-                execute(n->children[0]);
-            }
-            if (n->child_count > 1 && n->children[1]) {
-                execute(n->children[1]);
-            }
+            if (n->child_count > 0 && n->children[0]) execute(n->children[0]);
+            if (has_return) return;
+            if (n->child_count > 1 && n->children[1]) execute(n->children[1]);
+            if (has_return) return;
         }
         return;
     }
@@ -284,6 +390,7 @@ void execute(ASTNode* n) {
     if (strcmp(n->type, "until") == 0) {
         while (!eval(n->left)) {
             execute(n->children[0]);
+            if (has_return) return;
         }
         return;
     }
@@ -303,6 +410,7 @@ void execute(ASTNode* n) {
 %token FROM TO IN
 %token WHEN IS OTHERWISE SAFE
 %token BOUND ABOVE BELOW EQUALS UNTIL
+%token FUNCTION RETURNS RETURN
 %token <str> BOOL_LITERAL
 %token <str> IDENTIFIER
 %token <str> STRING_LITERAL
@@ -318,6 +426,8 @@ void execute(ASTNode* n) {
 %type <node> expression from_to_loop when_block when_clauses when_clause
 %type <node> bound_block bound_clauses bound_clause until_loop
 %type <node> loop_body assignment_no_semicolon
+%type <node> function_decl opt_param_list param_list param_decl
+%type <node> return_stmt function_call opt_arg_list arg_list
 %type <num> type
 
 %left COMP
@@ -359,6 +469,8 @@ statement:
     | when_block
     | bound_block
     | until_loop
+    | function_decl
+    | return_stmt
 ;
 
 declaration:
@@ -423,6 +535,15 @@ print_stmt:
       }
 ;
 
+return_stmt:
+      RETURN expression SEMICOLON
+      {
+          ASTNode* n = new_node("return");
+          n->left = $2;
+          $$ = n;
+      }
+;
+
 expression:
       INT_LITERAL
       {
@@ -453,6 +574,10 @@ expression:
           ASTNode* n = new_node("var");
           strcpy(n->name, $1);
           $$ = n;
+      }
+    | function_call
+      {
+          $$ = $1;
       }
     | LPAREN expression RPAREN
       {
@@ -492,6 +617,49 @@ expression:
           n->left = $1;
           n->right = $3;
           strcpy(n->op, $2);
+          $$ = n;
+      }
+;
+
+function_call:
+    IDENTIFIER LPAREN opt_arg_list RPAREN
+    {
+        ASTNode* n = new_node("func_call");
+        strcpy(n->name, $1);
+        n->children = (ASTNode**) malloc(sizeof(ASTNode*));
+        n->children[0] = $3;
+        n->child_count = 1;
+        $$ = n;
+    }
+;
+
+opt_arg_list:
+      arg_list
+      {
+          $$ = $1;
+      }
+    |
+      {
+          ASTNode* n = new_node("args");
+          n->children = NULL;
+          n->child_count = 0;
+          $$ = n;
+      }
+;
+
+arg_list:
+      arg_list COMMA expression
+      {
+          $1->children = realloc($1->children, sizeof(ASTNode*) * ($1->child_count + 1));
+          $1->children[$1->child_count++] = $3;
+          $$ = $1;
+      }
+    | expression
+      {
+          ASTNode* n = new_node("args");
+          n->children = (ASTNode**) malloc(sizeof(ASTNode*));
+          n->children[0] = $1;
+          n->child_count = 1;
           $$ = n;
       }
 ;
@@ -653,6 +821,63 @@ until_loop:
     }
 ;
 
+function_decl:
+    FUNCTION IDENTIFIER LPAREN opt_param_list RPAREN RETURNS type LBRACE statements RBRACE
+    {
+        ASTNode* n = new_node("function");
+        strcpy(n->name, $2);
+        n->var_type = $7;
+
+        n->children = (ASTNode**) malloc(sizeof(ASTNode*) * 2);
+        n->children[0] = $4;
+        n->children[1] = $9;
+        n->child_count = 2;
+
+        $$ = n;
+    }
+;
+
+opt_param_list:
+      param_list
+      {
+          $$ = $1;
+      }
+    |
+      {
+          ASTNode* n = new_node("params");
+          n->children = NULL;
+          n->child_count = 0;
+          $$ = n;
+      }
+;
+
+param_list:
+      param_list COMMA param_decl
+      {
+          $1->children = realloc($1->children, sizeof(ASTNode*) * ($1->child_count + 1));
+          $1->children[$1->child_count++] = $3;
+          $$ = $1;
+      }
+    | param_decl
+      {
+          ASTNode* n = new_node("params");
+          n->children = (ASTNode**) malloc(sizeof(ASTNode*));
+          n->children[0] = $1;
+          n->child_count = 1;
+          $$ = n;
+      }
+;
+
+param_decl:
+    type IDENTIFIER
+    {
+        ASTNode* n = new_node("param");
+        strcpy(n->name, $2);
+        n->var_type = $1;
+        $$ = n;
+    }
+;
+
 %%
 
 void yyerror(const char *s) {
@@ -669,6 +894,7 @@ int main(int argc, char **argv) {
     }
 
     if (yyparse() == 0) {
+        scan_functions(root);
         printf("Code is VALID.\n");
         execute(root);
     } else {

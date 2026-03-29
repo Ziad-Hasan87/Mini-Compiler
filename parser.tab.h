@@ -70,25 +70,28 @@ extern int yydebug;
     BELOW = 271,                   /* BELOW  */
     EQUALS = 272,                  /* EQUALS  */
     UNTIL = 273,                   /* UNTIL  */
-    BOOL_LITERAL = 274,            /* BOOL_LITERAL  */
-    IDENTIFIER = 275,              /* IDENTIFIER  */
-    STRING_LITERAL = 276,          /* STRING_LITERAL  */
-    INT_LITERAL = 277,             /* INT_LITERAL  */
-    FLOAT_LITERAL = 278,           /* FLOAT_LITERAL  */
-    ASSIGN = 279,                  /* ASSIGN  */
-    SEMICOLON = 280,               /* SEMICOLON  */
-    COMMA = 281,                   /* COMMA  */
-    COMP = 282,                    /* COMP  */
-    COMP_ASSIGN = 283,             /* COMP_ASSIGN  */
-    PLUS = 284,                    /* PLUS  */
-    MINUS = 285,                   /* MINUS  */
-    MULT = 286,                    /* MULT  */
-    DIV = 287,                     /* DIV  */
-    LPAREN = 288,                  /* LPAREN  */
-    RPAREN = 289,                  /* RPAREN  */
-    LBRACE = 290,                  /* LBRACE  */
-    RBRACE = 291,                  /* RBRACE  */
-    PRINT = 292                    /* PRINT  */
+    FUNCTION = 274,                /* FUNCTION  */
+    RETURNS = 275,                 /* RETURNS  */
+    RETURN = 276,                  /* RETURN  */
+    BOOL_LITERAL = 277,            /* BOOL_LITERAL  */
+    IDENTIFIER = 278,              /* IDENTIFIER  */
+    STRING_LITERAL = 279,          /* STRING_LITERAL  */
+    INT_LITERAL = 280,             /* INT_LITERAL  */
+    FLOAT_LITERAL = 281,           /* FLOAT_LITERAL  */
+    ASSIGN = 282,                  /* ASSIGN  */
+    SEMICOLON = 283,               /* SEMICOLON  */
+    COMMA = 284,                   /* COMMA  */
+    COMP = 285,                    /* COMP  */
+    COMP_ASSIGN = 286,             /* COMP_ASSIGN  */
+    PLUS = 287,                    /* PLUS  */
+    MINUS = 288,                   /* MINUS  */
+    MULT = 289,                    /* MULT  */
+    DIV = 290,                     /* DIV  */
+    LPAREN = 291,                  /* LPAREN  */
+    RPAREN = 292,                  /* RPAREN  */
+    LBRACE = 293,                  /* LBRACE  */
+    RBRACE = 294,                  /* RBRACE  */
+    PRINT = 295                    /* PRINT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -97,7 +100,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 294 "parser.y"
+#line 401 "parser.y"
 
     char* str;
     int num;
@@ -105,7 +108,7 @@ union YYSTYPE
     int bval;
     ASTNode* node;
 
-#line 109 "parser.tab.h"
+#line 112 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

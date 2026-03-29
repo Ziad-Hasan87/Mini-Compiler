@@ -24,6 +24,10 @@ STRING  \"([^\\\"]|\\.)*\"
 "logical"       { return LOGICAL; }
 "nothing"       { return NOTHING; }
 
+"function"      { return FUNCTION; }
+"returns"       { return RETURNS; }
+"return"        { return RETURN; }
+
 "when"          { return WHEN; }
 "is"            { return IS; }
 "otherwise"     { return OTHERWISE; }
@@ -98,13 +102,13 @@ STRING  \"([^\\\"]|\\.)*\"
 "*"             { return MULT; }
 "/"             { return DIV; }
 
-[ \t\r\n]+      { /* ignore whitespace */ }
+[ \t\r\n]+      { }
 
 "/*"            { BEGIN(COMMENT_STATE); }
 <COMMENT_STATE>"*/"      { BEGIN(INITIAL); }
-<COMMENT_STATE>[^*\n]+   { /* ignore */ }
-<COMMENT_STATE>"*"[^/]   { /* ignore */ }
-<COMMENT_STATE>\n        { /* ignore */ }
+<COMMENT_STATE>[^*\n]+   { }
+<COMMENT_STATE>"*"[^/]   { }
+<COMMENT_STATE>\n        { }
 
 .               { return yytext[0]; }
 

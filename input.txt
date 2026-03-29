@@ -13,12 +13,20 @@ print(x);
 print(y);
 print(flag);
 
+function division(integer a, integer b) returns decimal{
+    return a+b;
+}
+
 /* Arithmetic and comp_assign */
 x += 10;
 y *= 2.0;
 
+print("sending into function");
 print(x);
 print(y);
+integer result;
+result = division(x, y);
+print(result);
 
 
 integer i;
@@ -36,4 +44,8 @@ bound (x) {
     above (20) { print("greater than 20"); }
     below (10) { print("below 10"); }
     equals (15) { print("Exactly 10"); }
+}
+until (x > 100){
+    print(x);
+    x += 5;
 }

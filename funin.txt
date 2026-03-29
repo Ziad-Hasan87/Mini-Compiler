@@ -1,0 +1,23 @@
+function division(integer a, integer b) returns decimal {
+    return a / b;
+}
+
+function bigger(integer a, integer b) returns integer {
+    when {
+        is (a > b) { return a; }
+        otherwise { return b; }
+    }
+}
+
+decimal x;
+integer y;
+
+x = division(10, 2);
+y = bigger(7, 11);
+
+print("division result:");
+print(x);
+print("bigger result:");
+print(y);
+y *= 2;
+print(y);

@@ -91,7 +91,8 @@ extern int yydebug;
     RPAREN = 292,                  /* RPAREN  */
     LBRACE = 293,                  /* LBRACE  */
     RBRACE = 294,                  /* RBRACE  */
-    PRINT = 295                    /* PRINT  */
+    PRINT = 295,                   /* PRINT  */
+    SCAN = 296                     /* SCAN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -100,7 +101,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 401 "parser.y"
+#line 429 "parser.y"
 
     char* str;
     int num;
@@ -108,7 +109,7 @@ union YYSTYPE
     int bval;
     ASTNode* node;
 
-#line 112 "parser.tab.h"
+#line 113 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

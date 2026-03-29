@@ -39,13 +39,30 @@ when {
 }
 x=9;
 
-bound (x) {
-    in (10, 20) { print("Between 10 and 20"); }
-    above (20) { print("greater than 20"); }
-    below (10) { print("below 10"); }
-    equals (15) { print("Exactly 10"); }
-}
+
 until (x > 100){
     print(x);
     x += 5;
+    bound (x) {
+        in (10, 20) { print("Between 10 and 20"); }
+        above (20) { print("greater than 20"); }
+        below (10) { print("below 10"); }
+        equals (15) { print("Exactly 10"); }
+    }
 }
+x = 1;
+y = 1;
+until (x > 100){
+    integer b;
+    b = 10;
+    until(b > 100){
+        print(x);
+        b+=10;
+    }
+    x+=10;
+}
+
+print("Please enter value for x");
+scan(x);
+print("Value for x is: ");
+print(x);

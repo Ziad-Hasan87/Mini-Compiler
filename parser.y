@@ -194,6 +194,29 @@ void eval_print(ASTNode* n) {
     }
 }
 
+void eval_scan(ASTNode* n){
+    if (!n) return;
+
+    char buffer[100];
+    int temp;
+
+    printf("Enter value: ");
+    fflush(stdout);
+
+    if (!fgets(buffer, sizeof(buffer), stdin)) {
+        printf("Input error\n");
+        exit(1);
+    }
+
+    if (sscanf(buffer, "%d", &temp) != 1) {
+        printf("Invalid number\n");
+        exit(1);
+    }
+
+    Var* v = get_variable(n->left->name);
+    if (v) v->ivalue = temp;
+}
+
 double eval(ASTNode* n) {
     if (!n) return 0;
 
@@ -312,6 +335,11 @@ void execute(ASTNode* n) {
         return;
     }
 
+    if (strcmp(n->type, "scan") == 0){
+        eval_scan(n);
+        return;
+    }
+
     if (strcmp(n->type, "from_to") == 0) {
         int start = (int) eval(n->left);
         int end   = (int) eval(n->right);
@@ -420,9 +448,9 @@ void execute(ASTNode* n) {
 %token <str> COMP_ASSIGN
 %token PLUS MINUS MULT DIV
 %token LPAREN RPAREN LBRACE RBRACE
-%token PRINT
+%token PRINT SCAN
 
-%type <node> program statements statement declaration assignment print_stmt
+%type <node> program statements statement declaration assignment print_stmt scan_stmt
 %type <node> expression from_to_loop when_block when_clauses when_clause
 %type <node> bound_block bound_clauses bound_clause until_loop
 %type <node> loop_body assignment_no_semicolon
@@ -465,6 +493,7 @@ statement:
       declaration
     | assignment
     | print_stmt
+    | scan_stmt
     | from_to_loop
     | when_block
     | bound_block
@@ -535,6 +564,15 @@ print_stmt:
       }
 ;
 
+scan_stmt:
+      SCAN LPAREN IDENTIFIER RPAREN SEMICOLON
+      {
+          ASTNode* n = new_node("scan");
+          n->left = new_node("var");
+          strcpy(n->left->name, $3);
+          $$ = n;
+      }
+;
 return_stmt:
       RETURN expression SEMICOLON
       {

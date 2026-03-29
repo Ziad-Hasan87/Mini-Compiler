@@ -44,6 +44,7 @@ STRING  \"([^\\\"]|\\.)*\"
 
 "until"         { return UNTIL; }
 
+"scan"          { return SCAN;}
 "print"         { return PRINT; }
 
 "true"|"false"  {

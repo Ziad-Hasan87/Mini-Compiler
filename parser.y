@@ -195,12 +195,17 @@ void eval_print(ASTNode* n) {
 }
 
 void eval_scan(ASTNode* n){
-    if (!n) return;
+    if (!n || !n->left) return;
+
+    Var* v = get_variable(n->left->name);
+    if (!v) {
+        printf("Error: variable %s not found\n", n->left->name);
+        return;
+    }
 
     char buffer[100];
-    int temp;
 
-    printf("Enter value: ");
+    printf("Enter value for %s: ", v->name);
     fflush(stdout);
 
     if (!fgets(buffer, sizeof(buffer), stdin)) {
@@ -208,13 +213,43 @@ void eval_scan(ASTNode* n){
         exit(1);
     }
 
-    if (sscanf(buffer, "%d", &temp) != 1) {
-        printf("Invalid number\n");
-        exit(1);
+    if (v->type == 1) {
+        int temp;
+        if (sscanf(buffer, "%d", &temp) != 1) {
+            printf("Type error: expected integer\n");
+            exit(1);
+        }
+        v->ivalue = temp;
     }
 
-    Var* v = get_variable(n->left->name);
-    if (v) v->ivalue = temp;
+    // 🔹 DECIMAL
+    else if (v->type == 2) {
+        double temp;
+        if (sscanf(buffer, "%lf", &temp) != 1) {
+            printf("Type error: expected decimal\n");
+            exit(1);
+        }
+        v->dvalue = temp;
+    }
+
+    else if (v->type == 3) {
+        buffer[strcspn(buffer, "\n")] = 0;
+
+        if (strcmp(buffer, "true") == 0) {
+            v->bvalue = 1;
+        }
+        else if (strcmp(buffer, "false") == 0) {
+            v->bvalue = 0;
+        }
+        else {
+            printf("Type error: expected true/false\n");
+            exit(1);
+        }
+    }
+
+    else {
+        printf("Error: unsupported type for scan\n");
+    }
 }
 
 double eval(ASTNode* n) {
